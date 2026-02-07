@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8000/api";
+const API_URL = "https://silent-lory-krishnesh-d6a74547.koyeb.app/api";
+
 
 // Auth API
 export const authAPI = {
