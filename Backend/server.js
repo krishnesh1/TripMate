@@ -14,8 +14,8 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
-  origin:"http://localhost:5173",
-  credentials:true
+  origin: "https://normal-kite-krishnesh-6e63647c.koyeb.app",
+  credentials: true
 }));
 
 app.use(express.json());
