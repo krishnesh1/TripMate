@@ -14,7 +14,7 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
-  origin: "https://normal-kite-krishnesh-6e63647c.koyeb.app",
+  origin: "https://trip-mate-krishnesh1s-projects.vercel.app/auth",
   credentials: true
 }));
 
