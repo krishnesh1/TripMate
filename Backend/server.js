@@ -14,7 +14,7 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
-  origin: "trip-mate-krishnesh1s-projects.vercel.app",
+  origin: "https://trip-mate-krishnesh1s-projects.vercel.app",
   credentials: true
 }));
 
