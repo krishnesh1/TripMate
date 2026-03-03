@@ -1,4 +1,4 @@
-const API_URL = "https://silent-lory-krishnesh-d6a74547.koyeb.app/api";
+const API_URL = "https://inspiring-nurturing-production.up.railway.app/api";
 
 
 // Auth API
