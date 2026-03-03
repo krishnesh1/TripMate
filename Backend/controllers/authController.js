@@ -73,7 +73,7 @@ exports.login = async (req, res) => {
 };
 
 exports.logout = (req, res) => {
-  res.cookie("token","",{
+  res.cookie("token",{
     httpOnly: true,
     secure:true,
     expires: new Date(0)
