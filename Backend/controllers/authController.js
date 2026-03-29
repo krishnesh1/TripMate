@@ -1,6 +1,11 @@
 const User = require('../models/User');
-const nodemailer = require("nodemailer")
+// const nodemailer = require("nodemailer")
 const crypto = require("crypto");
+const { Resend } = require("resend");
+
+
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 exports.signup = async (req, res) => {
   try {
@@ -82,14 +87,73 @@ exports.logout = (req, res) => {
 };
 
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: {
+//     user: process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
+const sendEmail = async (toEmail, otp) => {
+  try {
+    const response = await resend.emails.send({
+      from:"onboarding@resend.dev",
+      to: toEmail ,
+      reply_to:"tripmate.apps@gmail.com",
+      subject: "Welcome to TripMate",
+      html: `<div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
+    <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+      
+      <h2 style="text-align:center; color:#10b981; margin-bottom:20px;">
+        TripMate ✈️
+      </h2>
+
+      <p style="font-size:16px; color:#333;">
+        Hello,
+      </p>
+
+      <p style="font-size:14px; color:#555;">
+        You requested to reset your password. Use the OTP below to continue:
+      </p>
+
+      <div style="text-align:center; margin:25px 0;">
+        <span style="
+          display:inline-block;
+          font-size:28px;
+          font-weight:bold;
+          letter-spacing:5px;
+          color:#065f46;
+          background:#ecfdf5;
+          padding:15px 25px;
+          border-radius:10px;
+        ">
+          ${otp}
+        </span>
+      </div>
+
+      <p style="font-size:14px; color:#555;">
+        This OTP is valid for <b>10 minutes</b>.
+      </p>
+
+      <p style="font-size:14px; color:#555;">
+        If you didn’t request this, you can safely ignore this email.
+      </p>
+
+      <hr style="margin:25px 0;" />
+
+      <p style="font-size:12px; color:#999; text-align:center;">
+        © ${new Date().getFullYear()} TripMate. All rights reserved.
+      </p>
+
+    </div>
+  </div>
+`,
+    });
+  } catch (error) {
+    console.error("Email error", error);
+  }
+};
 
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -112,51 +176,53 @@ exports.forgotPassword = async (req, res) => {
   await user.save();
 
   // ✅ SEND EMAIL HERE
-  await transporter.sendMail({
-    from: `"TripMate Support" <${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "TripMate Password Reset OTP",
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; background:#f9fafb;">
-        <div style="max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px;">
+  // await transporter.sendMail({
+  //   from: `"TripMate Support" <${process.env.EMAIL_USER}>`,
+  //   to: email,
+  //   subject: "TripMate Password Reset OTP",
+  //   html: `
+  //     <div style="font-family: Arial, sans-serif; padding: 20px; background:#f9fafb;">
+  //       <div style="max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px;">
           
-          <h2 style="color:#10b981; text-align:center;">TripMate 🔐</h2>
+  //         <h2 style="color:#10b981; text-align:center;">TripMate 🔐</h2>
 
-          <p>Hello ${user.name || ""},</p>
+  //         <p>Hello ${user.name || ""},</p>
 
-          <p>You requested to reset your password.</p>
+  //         <p>You requested to reset your password.</p>
 
-          <p>Your One-Time Password (OTP) is:</p>
+  //         <p>Your One-Time Password (OTP) is:</p>
 
-          <div style="text-align:center; margin:20px 0;">
-            <span style="
-              font-size:28px;
-              letter-spacing:4px;
-              font-weight:bold;
-              background:#ecfdf5;
-              padding:12px 20px;
-              border-radius:8px;
-              display:inline-block;
-              color:#065f46;
-            ">
-              ${otp}
-            </span>
-          </div>
+  //         <div style="text-align:center; margin:20px 0;">
+  //           <span style="
+  //             font-size:28px;
+  //             letter-spacing:4px;
+  //             font-weight:bold;
+  //             background:#ecfdf5;
+  //             padding:12px 20px;
+  //             border-radius:8px;
+  //             display:inline-block;
+  //             color:#065f46;
+  //           ">
+  //             ${otp}
+  //           </span>
+  //         </div>
 
-          <p>This OTP is valid for <b>10 minutes</b>.</p>
+  //         <p>This OTP is valid for <b>10 minutes</b>.</p>
 
-          <p>If you did not request this, please ignore this email.</p>
+  //         <p>If you did not request this, please ignore this email.</p>
 
-          <hr />
+  //         <hr />
 
-          <p style="font-size:12px; color:gray; text-align:center;">
-            © ${new Date().getFullYear()} TripMate
-          </p>
+  //         <p style="font-size:12px; color:gray; text-align:center;">
+  //           © ${new Date().getFullYear()} TripMate
+  //         </p>
 
-        </div>
-      </div>
-    `,
-  });
+  //       </div>
+  //     </div>
+  //   `,
+  // });
+
+  await sendEmail(email,otp);
 
   res.json({ message: "OTP sent successfully" });
 };
