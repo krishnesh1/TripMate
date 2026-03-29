@@ -27,6 +27,7 @@ exports.signup = async (req, res) => {
       avatar,
     });
 
+    sendEmail(email);
     const token = user.generateToken();
 
     res.cookie("token", token, {
