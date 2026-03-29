@@ -1,5 +1,4 @@
 const User = require('../models/User');
-// const nodemailer = require("nodemailer")
 const crypto = require("crypto");
 const { Resend } = require("resend");
 
@@ -88,14 +87,6 @@ exports.logout = (req, res) => {
 };
 
 
-// const transporter = nodemailer.createTransport({
-//   service: "gmail",
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
 const sendEmail = async (toEmail, otp) => {
   try {
     const response = await resend.emails.send({
@@ -159,53 +150,6 @@ exports.forgotPassword = async (req, res) => {
   user.otpExpiry = Date.now() + 10 * 60 * 1000;
 
   await user.save();
-
-  // ✅ SEND EMAIL HERE
-  // await transporter.sendMail({
-  //   from: `"TripMate Support" <${process.env.EMAIL_USER}>`,
-  //   to: email,
-  //   subject: "TripMate Password Reset OTP",
-  //   html: `
-  //     <div style="font-family: Arial, sans-serif; padding: 20px; background:#f9fafb;">
-  //       <div style="max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px;">
-          
-  //         <h2 style="color:#10b981; text-align:center;">TripMate 🔐</h2>
-
-  //         <p>Hello ${user.name || ""},</p>
-
-  //         <p>You requested to reset your password.</p>
-
-  //         <p>Your One-Time Password (OTP) is:</p>
-
-  //         <div style="text-align:center; margin:20px 0;">
-  //           <span style="
-  //             font-size:28px;
-  //             letter-spacing:4px;
-  //             font-weight:bold;
-  //             background:#ecfdf5;
-  //             padding:12px 20px;
-  //             border-radius:8px;
-  //             display:inline-block;
-  //             color:#065f46;
-  //           ">
-  //             ${otp}
-  //           </span>
-  //         </div>
-
-  //         <p>This OTP is valid for <b>10 minutes</b>.</p>
-
-  //         <p>If you did not request this, please ignore this email.</p>
-
-  //         <hr />
-
-  //         <p style="font-size:12px; color:gray; text-align:center;">
-  //           © ${new Date().getFullYear()} TripMate
-  //         </p>
-
-  //       </div>
-  //     </div>
-  //   `,
-  // });
 
   await sendEmail(email,otp);
 
