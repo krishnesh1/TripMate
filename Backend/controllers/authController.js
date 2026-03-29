@@ -103,48 +103,32 @@ const sendEmail = async (toEmail, otp) => {
       to: toEmail ,
       reply_to:"tripmate.apps@gmail.com",
       subject: "Welcome to TripMate",
-      html: `<div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
-    <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:12px; padding:30px; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+      html:`
+  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
+    <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:12px; padding:30px;">
       
-      <h2 style="text-align:center; color:#10b981; margin-bottom:20px;">
+      <h2 style="text-align:center; color:#10b981;">
         TripMate ✈️
       </h2>
 
-      <p style="font-size:16px; color:#333;">
-        Hello,
-      </p>
+      ${
+        otp
+          ? `
+            <p>Your OTP is:</p>
+            <h1 style="text-align:center;">${otp}</h1>
+            <p>This OTP is valid for 10 minutes.</p>
+          `
+          : `
+            <p style="font-size:16px;">
+              🎉 Your account has been created successfully on <b>TripMate-app</b>.
+            </p>
+            <p>Start exploring your journey now 🚀</p>
+          `
+      }
 
-      <p style="font-size:14px; color:#555;">
-        You requested to reset your password. Use the OTP below to continue:
-      </p>
-
-      <div style="text-align:center; margin:25px 0;">
-        <span style="
-          display:inline-block;
-          font-size:28px;
-          font-weight:bold;
-          letter-spacing:5px;
-          color:#065f46;
-          background:#ecfdf5;
-          padding:15px 25px;
-          border-radius:10px;
-        ">
-          ${otp}
-        </span>
-      </div>
-
-      <p style="font-size:14px; color:#555;">
-        This OTP is valid for <b>10 minutes</b>.
-      </p>
-
-      <p style="font-size:14px; color:#555;">
-        If you didn’t request this, you can safely ignore this email.
-      </p>
-
-      <hr style="margin:25px 0;" />
-
-      <p style="font-size:12px; color:#999; text-align:center;">
-        © ${new Date().getFullYear()} TripMate. All rights reserved.
+      <hr />
+      <p style="text-align:center; font-size:12px; color:gray;">
+        © ${new Date().getFullYear()} TripMate
       </p>
 
     </div>
