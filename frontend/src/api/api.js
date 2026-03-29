@@ -1,4 +1,4 @@
-const API_URL = "https://inspiring-nurturing-production.up.railway.app/api";
+const API_URL = "https://tripmate-production-1a81.up.railway.app/api";
 
 
 // Auth API
