@@ -26,12 +26,12 @@ exports.signup = async (req, res) => {
       await transporter.sendMail({
         from: `"TripMate" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Welcome to TripMate 🎉",
+        subject: "Welcome to TripMate ",
         html: `
           <div style="font-family: Arial; padding:20px;">
-            <h2 style="color:#10b981;">Welcome ${name} 🚀</h2>
+            <h2 style="color:#10b981;">Welcome ${name} </h2>
             <p>Your account has been created successfully.</p>
-            <p>We’re happy to have you onboard ❤️</p>
+            <p>We’re happy to have you onboard "TripMate"</p>
             <hr/>
             <p style="font-size:12px; color:gray;">
               © ${new Date().getFullYear()} TripMate
