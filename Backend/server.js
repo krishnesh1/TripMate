@@ -14,11 +14,15 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
-  origin: "https://trip-mate-git-main-krishnesh1s-projects.vercel.app",
+  origin: true,
   credentials: true
 }));
 
 app.use(express.json());
+
+app.get("/",(req,res)=>{
+  res.send("TripMate API is running");
+});
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
