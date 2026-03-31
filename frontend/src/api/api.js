@@ -39,7 +39,7 @@ export const authAPI = {
     });
 
     if (res.status === 401) {
-      return null; // ✅ normal logged-out state
+      return null; // 
     }
 
     if (!res.ok) {
