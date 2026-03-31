@@ -1,10 +1,6 @@
-const User = require('../models/User');
+const User = require("../models/User");
+const nodemailer = require("nodemailer");
 const crypto = require("crypto");
-const { Resend } = require("resend");
-
-
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 exports.signup = async (req, res) => {
   try {
@@ -26,13 +22,33 @@ exports.signup = async (req, res) => {
       avatar,
     });
 
-    sendEmail(email);
+      try {
+      await transporter.sendMail({
+        from: `"TripMate" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "Welcome to TripMate 🎉",
+        html: `
+          <div style="font-family: Arial; padding:20px;">
+            <h2 style="color:#10b981;">Welcome ${name} 🚀</h2>
+            <p>Your account has been created successfully.</p>
+            <p>We’re happy to have you onboard ❤️</p>
+            <hr/>
+            <p style="font-size:12px; color:gray;">
+              © ${new Date().getFullYear()} TripMate
+            </p>
+          </div>
+        `,
+      });
+    } catch (err) {
+      console.log("Email failed:", err.message);
+    }
+
     const token = user.generateToken();
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      secure: false,
+      sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
@@ -47,8 +63,6 @@ exports.signup = async (req, res) => {
   }
 };
 
-
-
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -62,109 +76,112 @@ exports.login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 30 * 24 * 60 * 60 * 1000
+      secure: false,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       id: user._id,
-      email: user.email
+      email: user.email,
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 exports.logout = (req, res) => {
-  res.cookie("token",{
+  res.cookie("token", {
     httpOnly: true,
-    secure:true,
-    expires: new Date(0)
+    secure: false,
+    expires: new Date(0),
   });
   res.json({ message: "Logged out successfully" });
 };
 
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
-const sendEmail = async (toEmail, otp) => {
-  try {
-    const response = await resend.emails.send({
-      from:"onboarding@resend.dev",
-      to: toEmail ,
-      reply_to:"tripmate.apps@gmail.com",
-      subject: "Welcome to TripMate",
-      html:`
-  <div style="font-family: Arial, sans-serif; background:#f4f6f8; padding:40px 0;">
-    <div style="max-width:500px; margin:auto; background:#ffffff; border-radius:12px; padding:30px;">
-      
-      <h2 style="text-align:center; color:#10b981;">
-        TripMate ✈️
-      </h2>
 
-      ${
-        otp
-          ? `
-            <p>Your OTP is:</p>
-            <h1 style="text-align:center;">${otp}</h1>
-            <p>This OTP is valid for 10 minutes.</p>
-          `
-          : `
-            <p style="font-size:16px;">
-              🎉 Your account has been created successfully on <b>TripMate-app</b>.
-            </p>
-            <p>Start exploring your journey now 🚀</p>
-          `
-      }
 
-      <hr />
-      <p style="text-align:center; font-size:12px; color:gray;">
-        © ${new Date().getFullYear()} TripMate
-      </p>
-
-    </div>
-  </div>
-`,
-    });
-  } catch (error) {
-    console.error("Email error", error);
-  }
-};
 
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
   const user = await User.findOne({ email });
 
-  if (!user)
-    return res.status(404).json({ message: "User not found" });
+  if (!user) return res.status(404).json({ message: "User not found" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  const hashedOTP = crypto
-    .createHash("sha256")
-    .update(otp)
-    .digest("hex");
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
   user.resetOTP = hashedOTP;
   user.otpExpiry = Date.now() + 10 * 60 * 1000;
 
   await user.save();
 
-  await sendEmail(email,otp);
+  await transporter.sendMail({
+    from: `"TripMate Support" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "TripMate Password Reset OTP",
+    html: `
+      <div style="font-family: Arial, sans-serif; padding: 20px; background:#f9fafb;">
+        <div style="max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 10px;">
+
+          <h2 style="color:#10b981; text-align:center;">TripMate 🔐</h2>
+
+          <p>Hello ${user.name || ""},</p>
+
+          <p>You requested to reset your password.</p>
+
+          <p>Your One-Time Password (OTP) is:</p>
+
+          <div style="text-align:center; margin:20px 0;">
+            <span style="
+              font-size:28px;
+              letter-spacing:4px;
+              font-weight:bold;
+              background:#ecfdf5;
+              padding:12px 20px;
+              border-radius:8px;
+              display:inline-block;
+              color:#065f46;
+            ">
+              ${otp}
+            </span>
+          </div>
+
+          <p>This OTP is valid for <b>10 minutes</b>.</p>
+
+          <p>If you did not request this, please ignore this email.</p>
+
+          <hr />
+
+          <p style="font-size:12px; color:gray; text-align:center;">
+            © ${new Date().getFullYear()} TripMate
+          </p>
+
+        </div>
+      </div>
+    `,
+  });
+
 
   res.json({ message: "OTP sent successfully" });
 };
-
-
 
 exports.resetPassword = async (req, res) => {
   const { email, password } = req.body;
 
   const user = await User.findOne({ email });
 
-  if (!user)
-    return res.status(400).json({ message: "User not found" });
+  if (!user) return res.status(400).json({ message: "User not found" });
 
   user.password = password;
 
@@ -176,18 +193,12 @@ exports.resetPassword = async (req, res) => {
   res.json({ message: "Password reset success" });
 };
 
-
-
-
 exports.verifyOTP = async (req, res) => {
   const { email, otp } = req.body;
 
   const user = await User.findOne({ email });
 
-  const hashedOTP = crypto
-    .createHash("sha256")
-    .update(otp)
-    .digest("hex");
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
 
   if (!user || user.resetOTP !== hashedOTP)
     return res.status(400).json({ message: "Invalid OTP" });
@@ -195,18 +206,15 @@ exports.verifyOTP = async (req, res) => {
   res.json({ message: "OTP verified" });
 };
 
-
-
-
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     return res.status(200).json(user);
   } catch (error) {
-    console.error('GetMe error:', error);
-    return res.status(500).json({ message: error.message || 'Server error' });
+    console.error("GetMe error:", error);
+    return res.status(500).json({ message: error.message || "Server error" });
   }
 };
