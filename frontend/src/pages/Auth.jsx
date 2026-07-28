@@ -107,6 +107,7 @@ const Auth = () => {
       width: Math.min(400, googleButtonRef.current.offsetWidth || 360),
       text: isLogin ? "signin_with" : "signup_with",
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleClientId, googleReady, isLogin]);
 
   return (

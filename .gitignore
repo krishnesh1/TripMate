@@ -4,6 +4,8 @@ node_modules/
 # Environment files
 .env
 .env.*
+!.env.example
+!**/.env.example
 
 # Build folders
 dist/
@@ -40,5 +42,7 @@ Thumbs.db
 # pnpm-lock.yaml
 node_modules/
 .env
+!.env.example
+!**/.env.example
 dist/
 .DS_Store

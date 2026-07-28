@@ -1,5 +1,5 @@
-const API_URL = "https://experienced-harri-abcde1-04308873.koyeb.app/api";
-
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://experienced-harri-abcde1-04308873.koyeb.app/api";
 
 // Auth API
 export const authAPI = {
