@@ -1,8 +1,5 @@
 const API_URL = "https://experienced-harri-abcde1-04308873.koyeb.app/api";
-<<<<<<< HEAD
 
-=======
->>>>>>> 704390a (Add trip management and Google authentication)
 
 // Auth API
 export const authAPI = {
@@ -55,11 +52,8 @@ export const authAPI = {
     });
 
     if (res.status === 401) {
-<<<<<<< HEAD
-      return null; // 
-=======
+
       return null;
->>>>>>> 704390a (Add trip management and Google authentication)
     }
 
     if (!res.ok) {
