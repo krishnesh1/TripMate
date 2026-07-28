@@ -8,7 +8,11 @@ dotenv.config();
 
 
 const app = express();
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
+const defaultClientUrls = [
+  "http://localhost:5173",
+  "https://trip-mate-git-main-krishnesh1s-projects.vercel.app",
+];
+const allowedOrigins = (process.env.CLIENT_URL || defaultClientUrls.join(","))
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -18,7 +22,13 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
-  origin: allowedOrigins,
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Origin ${origin} is not allowed by CORS`));
+  },
   credentials: true
 }));
 
