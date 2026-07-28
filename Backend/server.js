@@ -14,9 +14,14 @@ connectDB();
 app.use(cookieParser());
 // Middleware
 app.use(cors({
+<<<<<<< HEAD
   origin: "https://trip-mate-git-main-krishnesh1s-projects.vercel.app",    
+=======
+  origin: "https://trip-mate-git-main-krishnesh1s-projects.vercel.app",
+>>>>>>> 704390a (Add trip management and Google authentication)
   credentials: true
 }));
+
 
 app.use(express.json());
 
@@ -26,6 +31,7 @@ app.get("/",(req,res)=>{
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/trips', require('./routes/tripRoutes'));
 app.use('/api/members', require('./routes/memberRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 

@@ -1,38 +1,29 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { authAPI } from "../api/api";
 import toast from "react-hot-toast";
+import { ArrowLeft, Eye, EyeOff, LockKeyhole } from "lucide-react";
+import { authAPI } from "../api/api";
 
 export default function ResetPassword() {
   const location = useLocation();
   const navigate = useNavigate();
-
   const email = location.state?.email || "";
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const reset = async () => {
-    if (!password || !confirm)
-      return toast.error("All fields required");
-
-    if (password !== confirm)
-      return toast.error("Passwords do not match");
+    if (!password || !confirm) return toast.error("All fields required");
+    if (password !== confirm) return toast.error("Passwords do not match");
 
     try {
       setLoading(true);
-
-      // ✅ No OTP here
       await authAPI.resetPassword(email, password);
-
-      toast.success("Password reset successful 🎉");
-
-      setTimeout(() => navigate("/auth"), 1500);
-
+      toast.success("Password reset successful");
+      setTimeout(() => navigate("/auth"), 1000);
     } catch (err) {
       toast.error(err.message || "Reset failed");
     } finally {
@@ -40,90 +31,83 @@ export default function ResetPassword() {
     }
   };
 
+  const inputClass =
+    "min-h-12 w-full rounded-lg border border-slate-200 bg-white px-11 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-rose-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-6">
+      <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+        <button
+          type="button"
+          onClick={() => navigate("/auth")}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-emerald-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to login
+        </button>
 
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-emerald-600">
-            Reset Password 🔐
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">
-            Create a new password
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-950">Reset Password</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Create a new password for your account.
           </p>
         </div>
 
         <div className="space-y-4">
-
-          {/* NEW PASSWORD */}
-          <div>
-            <label className="text-sm text-gray-600">
-              New Password
-            </label>
-
-            <div className="relative">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">New Password</span>
+            <span className="relative mt-1 block">
+              <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type={showPass ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="New password"
+                value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none"
+                className={inputClass}
               />
-
-              <span
+              <button
+                type="button"
                 onClick={() => setShowPass(!showPass)}
-                className="absolute right-4 top-4 cursor-pointer text-gray-500 text-sm"
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100"
+                aria-label={showPass ? "Hide password" : "Show password"}
               >
-                {showPass ? "Hide" : "Show"}
-              </span>
-            </div>
-          </div>
+                {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </span>
+          </label>
 
-          {/* CONFIRM PASSWORD */}
-          <div>
-            <label className="text-sm text-gray-600">
-              Confirm Password
-            </label>
-
-            <div className="relative">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">Confirm Password</span>
+            <span className="relative mt-1 block">
+              <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type={showConfirm ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="Confirm password"
+                value={confirm}
                 onChange={(e) => setConfirm(e.target.value)}
-                className="w-full mt-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-emerald-400 outline-none"
+                className={inputClass}
               />
-
-              <span
+              <button
+                type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
-                className="absolute right-4 top-4 cursor-pointer text-gray-500 text-sm"
+                className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100"
+                aria-label={showConfirm ? "Hide password" : "Show password"}
               >
-                {showConfirm ? "Hide" : "Show"}
-              </span>
-            </div>
-          </div>
+                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </span>
+          </label>
 
-          {/* BUTTON */}
           <button
+            type="button"
             onClick={reset}
             disabled={loading}
-            className="w-full py-3 mt-2 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-600 transition disabled:opacity-50"
+            className="min-h-12 w-full rounded-lg bg-emerald-600 px-5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
           >
-            {loading ? "Resetting..." : "Reset Password →"}
+            {loading ? "Resetting..." : "Reset Password"}
           </button>
-
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Remember your password?{" "}
-            <span
-              onClick={() => navigate("/auth")}
-              className="text-emerald-600 font-medium cursor-pointer hover:underline"
-            >
-              Login
-            </span>
-          </p>
-
         </div>
-
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

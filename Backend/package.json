@@ -1,7 +1,11 @@
 {
   "scripts": {
     "start": "node server.js",
+<<<<<<< HEAD
     "dev": "nodemon server.js"
+=======
+    "dev": "nodemon Backend/server.js"
+>>>>>>> 704390a (Add trip management and Google authentication)
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

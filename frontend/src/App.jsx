@@ -6,7 +6,6 @@ import Auth from "./pages/Auth";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import VerifyOTP from "./pages/VerifyOTP";
-
 import { Toaster } from "react-hot-toast";
 
 const ProtectedRoute = ({ children }) => {
@@ -21,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
 const App = () => (
   <AuthProvider>
     <BrowserRouter>
-      {/* 🔔 Global Toaster */}
+
       <Toaster
         position="bottom-right"
         toastOptions={{
@@ -35,6 +34,7 @@ const App = () => (
 
       <Routes>
         <Route path="/auth" element={<Auth />} />
+
         <Route
           path="/"
           element={
@@ -43,12 +43,11 @@ const App = () => (
             </ProtectedRoute>
           }
         />
-      <Route path="/forgot-password" element={<ForgotPassword/>}/>
-      <Route path="/reset-password" element={<ResetPassword/>}/>
-      <Route path="/verify-otp" element={<VerifyOTP/>}/>
 
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
       </Routes>
-
 
     </BrowserRouter>
   </AuthProvider>

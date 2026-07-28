@@ -1,5 +1,8 @@
 const API_URL = "https://experienced-harri-abcde1-04308873.koyeb.app/api";
+<<<<<<< HEAD
 
+=======
+>>>>>>> 704390a (Add trip management and Google authentication)
 
 // Auth API
 export const authAPI = {
@@ -7,12 +10,25 @@ export const authAPI = {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔥 send cookies
+      credentials: "include", 
       body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Login failed");
+    return data;
+  },
+
+  googleLogin: async (credential) => {
+    const res = await fetch(`${API_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ credential }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Google login failed");
     return data;
   },
 
@@ -39,7 +55,11 @@ export const authAPI = {
     });
 
     if (res.status === 401) {
+<<<<<<< HEAD
       return null; // 
+=======
+      return null;
+>>>>>>> 704390a (Add trip management and Google authentication)
     }
 
     if (!res.ok) {
@@ -95,21 +115,44 @@ export const authAPI = {
   },
 };
 
-// Members API
-export const membersAPI = {
+// Trips API
+export const tripsAPI = {
   getAll: async () => {
-    const res = await fetch(`${API_URL}/members`, {
+    const res = await fetch(`${API_URL}/trips`, {
       credentials: "include",
     });
     return res.json();
   },
 
   create: async (name) => {
-    const res = await fetch(`${API_URL}/members`, {
+    const res = await fetch(`${API_URL}/trips`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({ name }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to create trip");
+    return data;
+  },
+};
+
+// Members API
+export const membersAPI = {
+  getAll: async (tripId) => {
+    const res = await fetch(`${API_URL}/members?tripId=${tripId}`, {
+      credentials: "include",
+    });
+    return res.json();
+  },
+
+  create: async (name, tripId) => {
+    const res = await fetch(`${API_URL}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ name, tripId }),
     });
     return res.json();
   },
@@ -125,25 +168,33 @@ export const membersAPI = {
 
 // Expenses API
 export const expensesAPI = {
-  getAll: async () => {
-    const res = await fetch(`${API_URL}/expenses`, {
+  getAll: async (tripId) => {
+    const res = await fetch(`${API_URL}/expenses?tripId=${tripId}`, {
       credentials: "include",
     });
     return res.json();
   },
 
-  create: async (payerId, amount, description) => {
+  create: async (payerId, amount, description, tripId, excludedMemberIds = []) => {
     const res = await fetch(`${API_URL}/expenses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
-      body: JSON.stringify({ payerId, amount, description }),
+      body: JSON.stringify({ payerId, amount, description, tripId, excludedMemberIds }),
     });
     return res.json();
   },
 
-  reset: async () => {
-    const res = await fetch(`${API_URL}/expenses/reset`, {
+  reset: async (tripId) => {
+    const res = await fetch(`${API_URL}/expenses/reset?tripId=${tripId}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    return res.json();
+  },
+
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/expenses/${id}`, {
       method: "DELETE",
       credentials: "include",
     });

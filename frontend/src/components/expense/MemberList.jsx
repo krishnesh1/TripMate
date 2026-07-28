@@ -1,9 +1,9 @@
-import React, { useState, useRef } from "react";
+import React, { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { Plus, Trash2, Users } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
-import { X } from "lucide-react";
 
 export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
   const [newMemberName, setNewMemberName] = useState("");
@@ -12,25 +12,7 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
 
   const showToastOnce = (type, message, id) => {
     if (toastRef.current) return;
-
-    toast[type](
-      (t) => (
-        <div className="relative pl-6">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              toastRef.current = false;
-            }}
-            className="absolute left-0 top-0 text-gray-500 hover:text-red-500"
-          >
-            ✕
-          </button>
-          {message}
-        </div>
-      ),
-      { id }
-    );
-
+    toast[type](message, { id });
     toastRef.current = true;
   };
 
@@ -38,7 +20,7 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
     e.preventDefault();
 
     if (!newMemberName.trim()) {
-      showToastOnce("error", "Member name cannot be empty ⚠️", "member-empty");
+      showToastOnce("error", "Member name cannot be empty", "member-empty");
       return;
     }
 
@@ -46,10 +28,10 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
 
     try {
       await onAddMember(newMemberName.trim());
-      showToastOnce("success", "Member added successfully ✅", "member-added");
+      showToastOnce("success", "Member added", "member-added");
       setNewMemberName("");
     } catch {
-      showToastOnce("error", "Failed to add member ❌", "member-failed");
+      showToastOnce("error", "Failed to add member", "member-failed");
     } finally {
       setIsAdding(false);
       toastRef.current = false;
@@ -62,24 +44,14 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
 
     toast(
       (t) => (
-        <div className="relative space-y-3 pl-6">
-          <button
-            onClick={() => {
-              toast.dismiss(t.id);
-              toastRef.current = false;
-            }}
-            className="absolute left-0 top-0 text-gray-500 hover:text-red-500"
-          >
-            ✕
-          </button>
-
-          <p className="font-medium">
-            Remove <span className="font-bold">{name}</span> from group?
+        <div className="space-y-3">
+          <p className="font-semibold text-slate-900">
+            Remove <span>{name}</span> from this trip?
           </p>
 
-          <div className="flex gap-2 justify-end">
+          <div className="flex justify-end gap-2">
             <button
-              className="px-3 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300"
+              className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
               onClick={() => {
                 toast.dismiss(t.id);
                 toastRef.current = false;
@@ -89,26 +61,11 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
             </button>
 
             <button
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+              className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700"
               onClick={async () => {
                 toast.dismiss(t.id);
                 await onRemoveMember(id);
-
-                toast.success(
-                  (t2) => (
-                    <div className="relative pl-6">
-                      <button
-                        onClick={() => toast.dismiss(t2.id)}
-                        className="absolute left-0 top-0 text-gray-500 hover:text-red-500"
-                      >
-                        ✕
-                      </button>
-                      Member removed 🗑️
-                    </div>
-                  ),
-                  { id: "member-removed" }
-                );
-
+                toast.success("Member removed", { id: "member-removed" });
                 toastRef.current = false;
               }}
             >
@@ -117,92 +74,74 @@ export const MemberList = ({ members, onAddMember, onRemoveMember }) => {
           </div>
         </div>
       ),
-      { duration: 6000, id: "member-confirm" }
+      { duration: 6000, id: "member-confirm" },
     );
   };
 
   return (
-    <Card className="border-0 shadow-xl rounded-2xl overflow-hidden bg-linear-to-br from-white to-indigo-50">
-
-      {/* 🌈 HEADER */}
-      <CardHeader className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 text-white">
-        <CardTitle className="text-xl font-bold tracking-wide">
-          👥 Group Members
-        </CardTitle>
-        <p className="text-sm opacity-90">
-          Add or remove people from your group
-        </p>
+    <Card>
+      <CardHeader>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle>Group Members</CardTitle>
+            <p className="mt-1 text-sm text-slate-500">
+              Add the people sharing this trip.
+            </p>
+          </div>
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+            <Users className="h-5 w-5" />
+          </span>
+        </div>
       </CardHeader>
 
-      <CardContent className="p-6">
-
-        {/* ➕ ADD MEMBER */}
-        <form onSubmit={handleSubmit} className="flex gap-2 mb-6">
+      <CardContent>
+        <form onSubmit={handleSubmit} className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <Input
-            placeholder="New member name (e.g., Jane)"
+            placeholder="Member name"
             value={newMemberName}
             onChange={(e) => setNewMemberName(e.target.value)}
-            className="focus:ring-2 focus:ring-indigo-400"
           />
           <Button
             type="submit"
             disabled={isAdding}
-            className="
-              bg-linear-to-r from-indigo-500 to-green-500
-              hover:from-green-600 hover:to-green-600
-              text-white font-semibold
-              px-4
-              shadow-md hover:shadow-lg
-              transition-all
-            "
+            className="bg-slate-950 text-white hover:bg-slate-800"
           >
+            <Plus className="mr-2 h-4 w-4" />
             {isAdding ? "Adding..." : "Add"}
           </Button>
         </form>
 
-        {/* 📋 MEMBER LIST */}
-        <div className="space-y-3 border-t pt-4">
+        <div className="mt-5 space-y-2">
           {members.length === 0 ? (
-            <p className="text-gray-500 italic text-sm text-center py-6">
-              No members yet. Add at least 2 members to start 💡
-            </p>
+            <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
+              No members yet. Add at least 2 members to record expenses.
+            </div>
           ) : (
             members.map((member) => (
               <div
                 key={member._id}
-                className="
-                  flex justify-between items-center
-                  p-3 rounded-xl
-                  bg-white shadow-md
-                  hover:shadow-lg transition-all
-                  border-l-4 border-indigo-400
-                "
+                className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5"
               >
-                <span className="font-semibold text-gray-800">
+                <span className="min-w-0 truncate font-semibold text-slate-800">
                   {member.name}
                 </span>
 
                 <Button
-                  size="icon"
-                  variant="ghost"
+                  type="button"
                   onClick={() => handleRemove(member._id, member.name)}
-                  className="
-                    text-red-500 hover:text-red-600
-                    hover:bg-red-100
-                    rounded-full
-                  "
+                  className="h-12 min-h-12 w-12 shrink-0 bg-red-50 p-0 text-red-600 hover:bg-red-100"
+                  aria-label={`Remove ${member.name}`}
                 >
-                  <X className="h-4 w-4" />
+                  <Trash2 className="h-6 w-6" />
                 </Button>
               </div>
             ))
           )}
         </div>
 
-        {/* ⚠️ WARNING */}
         {members.length > 0 && members.length < 2 && (
-          <p className="text-sm text-red-500 mt-4 text-center animate-pulse">
-            ⚠️ You need at least 2 members to record expenses
+          <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-center text-sm font-medium text-amber-700">
+            Add one more member to start recording expenses.
           </p>
         )}
       </CardContent>

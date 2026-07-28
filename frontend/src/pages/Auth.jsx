@@ -1,24 +1,23 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { login, signup } = useAuth();
+  const { login, signup, googleLogin } = useAuth();
 
   const [isLogin, setIsLogin] = useState(true);
-
-  // Fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // 👇 NEW STATE
   const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
+  const [googleReady, setGoogleReady] = useState(false);
+
   const toastRef = useRef(false);
+  const googleButtonRef = useRef(null);
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   const showToastOnce = (type, message, id) => {
     if (toastRef.current) return;
@@ -38,70 +37,141 @@ const Auth = () => {
       if (result.success) {
         showToastOnce(
           "success",
-          isLogin
-            ? "Logged in successfully 🎉"
-            : "Account created successfully 🚀",
+          isLogin ? "Logged in successfully" : "Account created successfully",
           "auth-success",
         );
         navigate("/");
       } else {
-        showToastOnce(
-          "error",
-          result.message || "Authentication failed",
-          "auth-error",
-        );
+        showToastOnce("error", result.message || "Authentication failed", "auth-error");
       }
     } catch {
-      showToastOnce("error", "Something went wrong ❌", "auth-failed");
+      showToastOnce("error", "Something went wrong", "auth-failed");
     } finally {
       setLoading(false);
       toastRef.current = false;
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-emerald-50 via-white to-rose-50 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+  const handleGoogleLogin = async (credential) => {
+    setLoading(true);
 
-        {/* LOGO */}
-        <div className="flex flex-col items-center mb-6">
-          <div className="h-14 w-14 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-2xl font-bold shadow">
-            <img
-              src="/logo.png"
-              alt="TripMate Logo"
-              className="h-10 w-10 object-contain"
-            />
+    try {
+      const result = await googleLogin(credential);
+
+      if (result.success) {
+        showToastOnce("success", "Logged in with Google", "google-success");
+        navigate("/");
+      } else {
+        showToastOnce("error", result.message || "Google login failed", "google-error");
+      }
+    } catch {
+      showToastOnce("error", "Google login failed", "google-failed");
+    } finally {
+      setLoading(false);
+      toastRef.current = false;
+    }
+  };
+
+  useEffect(() => {
+    if (!googleClientId) return;
+
+    if (window.google) {
+      setGoogleReady(true);
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (window.google) {
+        setGoogleReady(true);
+        window.clearInterval(intervalId);
+      }
+    }, 200);
+
+    return () => window.clearInterval(intervalId);
+  }, [googleClientId]);
+
+  useEffect(() => {
+    if (!googleClientId || !googleReady || !googleButtonRef.current || !window.google) {
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: (response) => handleGoogleLogin(response.credential),
+    });
+
+    googleButtonRef.current.innerHTML = "";
+    window.google.accounts.id.renderButton(googleButtonRef.current, {
+      theme: "outline",
+      size: "large",
+      width: Math.min(400, googleButtonRef.current.offsetWidth || 360),
+      text: isLogin ? "signin_with" : "signup_with",
+    });
+  }, [googleClientId, googleReady, isLogin]);
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-50 via-white to-rose-50 px-4 py-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl sm:p-8">
+        <div className="mb-6 flex flex-col items-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500 text-2xl font-bold text-white shadow">
+            <img src="/logo.png" alt="TripMate Logo" className="h-10 w-10 object-contain" />
           </div>
           <h1 className="mt-3 text-2xl font-bold text-emerald-600">TripMate</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Split expenses with friends, hassle-free ✨
+          <p className="mt-1 text-center text-sm text-gray-500">
+            Split expenses with friends, hassle-free
           </p>
         </div>
 
-        {/* TABS */}
-        <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+        <div className="mb-5 flex rounded-xl bg-gray-100 p-1">
           <button
+            type="button"
             onClick={() => setIsLogin(true)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-              isLogin ? "bg-white shadow text-gray-900" : "text-gray-500"
+            className={`min-h-10 flex-1 rounded-lg text-sm font-medium transition ${
+              isLogin ? "bg-white text-gray-900 shadow" : "text-gray-500"
             }`}
           >
             Sign In
           </button>
 
           <button
+            type="button"
             onClick={() => setIsLogin(false)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-              !isLogin ? "bg-white shadow text-gray-900" : "text-gray-500"
+            className={`min-h-10 flex-1 rounded-lg text-sm font-medium transition ${
+              !isLogin ? "bg-white text-gray-900 shadow" : "text-gray-500"
             }`}
           >
             Sign Up
           </button>
         </div>
 
-        {/* FORM */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="mb-4">
+          {googleClientId ? (
+            <div className="flex min-h-11 w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-2 py-1">
+              {!googleReady && (
+                <span className="text-sm font-medium text-gray-500">
+                  Loading Google login...
+                </span>
+              )}
+              <div ref={googleButtonRef} className="w-full" />
+            </div>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="min-h-11 w-full rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-400"
+            >
+              Continue with Google
+            </button>
+          )}
+        </div>
 
+        <div className="mb-4 flex items-center gap-3 text-xs uppercase text-gray-400">
+          <span className="h-px flex-1 bg-gray-200" />
+          or
+          <span className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div>
               <label className="text-sm font-medium text-gray-600">Name</label>
@@ -110,32 +180,25 @@ const Auth = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="mt-1 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-emerald-400 outline-none"
+                className="mt-1 min-h-12 w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
               />
             </div>
           )}
 
-          {/* EMAIL */}
           <div>
-            <label className="text-sm font-medium text-gray-600">
-              Email Address
-            </label>
+            <label className="text-sm font-medium text-gray-600">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="you@example.com"
-              className="mt-1 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-emerald-400 outline-none"
+              className="mt-1 min-h-12 w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
 
-          {/* PASSWORD  */}
           <div className="relative">
-            <label className="text-sm font-medium text-gray-600">
-              Password
-            </label>
-
+            <label className="text-sm font-medium text-gray-600">Password</label>
             <input
               type={showPassword ? "text" : "password"}
               value={password}
@@ -143,7 +206,7 @@ const Auth = () => {
               required
               minLength={6}
               placeholder="Password"
-              className="mt-1 w-full rounded-xl border px-4 py-3 pr-16 focus:ring-2 focus:ring-emerald-400 outline-none"
+              className="mt-1 min-h-12 w-full rounded-xl border px-4 py-3 pr-16 outline-none focus:ring-2 focus:ring-emerald-400"
             />
 
             <button
@@ -156,38 +219,34 @@ const Auth = () => {
           </div>
 
           {isLogin && (
-            <p
+            <button
+              type="button"
               onClick={() => navigate("/forgot-password")}
-              className="text-right text-sm text-emerald-600 cursor-pointer hover:underline mt-1"
+              className="ml-auto block text-sm text-emerald-600 hover:underline"
             >
               Forgot Password?
-            </p>
+            </button>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-3 rounded-xl bg-emerald-500 text-white font-semibold text-lg hover:bg-emerald-600 transition disabled:opacity-50"
+            className="mt-2 min-h-12 w-full rounded-xl bg-emerald-500 py-3 text-lg font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-50"
           >
-            {loading
-              ? "Please wait..."
-              : isLogin
-              ? "Sign In →"
-              : "Create Account →"}
+            {loading ? "Please wait..." : isLogin ? "Sign In" : "Create Account"}
           </button>
         </form>
 
-        {/* FOOTER */}
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="mt-6 text-center text-sm text-gray-500">
           {isLogin ? "New to TripMate? " : "Already have an account? "}
           <button
+            type="button"
             onClick={() => setIsLogin(!isLogin)}
-            className="text-emerald-600 font-medium hover:underline"
+            className="font-medium text-emerald-600 hover:underline"
           >
             {isLogin ? "Create an account" : "Sign in"}
           </button>
         </p>
-
       </div>
     </div>
   );

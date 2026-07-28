@@ -4,7 +4,13 @@ const Expense = require('../models/Expense');
 // @route   GET /api/members
 exports.getMembers = async (req, res) => {
   try {
-    const members = await Member.find({ userId: req.user._id })
+    const { tripId } = req.query;
+
+    if (!tripId) {
+      return res.status(400).json({ message: 'Trip is required' });
+    }
+
+    const members = await Member.find({ userId: req.user._id, tripId })
       .sort({ createdAt: 1 });
     res.json(members);
   } catch (error) {
@@ -15,10 +21,15 @@ exports.getMembers = async (req, res) => {
 // @route   POST /api/members
 exports.createMember = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, tripId } = req.body;
+
+    if (!tripId) {
+      return res.status(400).json({ message: 'Trip is required' });
+    }
     
     const member = await Member.create({
       userId: req.user._id,
+      tripId,
       name
     });
     
@@ -41,7 +52,11 @@ exports.deleteMember = async (req, res) => {
     }
 
     // Delete all expenses where this member is the payer
-    await Expense.deleteMany({ payerId: req.params.id });
+    await Expense.deleteMany({
+      userId: req.user._id,
+      tripId: member.tripId,
+      payerId: req.params.id
+    });
     
     await member.deleteOne();
     

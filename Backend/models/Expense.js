@@ -6,6 +6,11 @@ const expenseSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  tripId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Trip',
+    required: true
+  },
   payerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Member',
@@ -20,6 +25,11 @@ const expenseSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  excludedMemberIds: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Member',
+    default: []
   }
 }, { timestamps: true });
 

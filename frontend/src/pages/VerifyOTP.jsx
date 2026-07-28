@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { authAPI } from "../api/api";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { ArrowLeft, KeyRound } from "lucide-react";
+import { authAPI } from "../api/api";
 
 export default function VerifyOTP() {
   const [otp, setOtp] = useState("");
@@ -11,10 +12,8 @@ export default function VerifyOTP() {
 
   const navigate = useNavigate();
   const location = useLocation();
-
   const email = location.state?.email;
 
-  // ⏳ Countdown Timer
   useEffect(() => {
     if (timer === 0) return;
 
@@ -25,19 +24,14 @@ export default function VerifyOTP() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  // ✅ Verify OTP
   const verify = async () => {
     if (!otp) return toast.error("Enter OTP");
 
     try {
       setLoading(true);
-
       await authAPI.verifyOTP(email, otp);
-
-      toast.success("OTP verified ✅");
-
+      toast.success("OTP verified");
       navigate("/reset-password", { state: { email } });
-
     } catch (err) {
       toast.error(err.message || "Invalid OTP");
     } finally {
@@ -45,18 +39,13 @@ export default function VerifyOTP() {
     }
   };
 
-  // 🔄 Resend OTP
   const resendOTP = async () => {
     try {
       setResendLoading(true);
-
       await authAPI.forgotPassword(email);
-
-      toast.success("OTP resent 📧");
-
+      toast.success("OTP resent");
       setTimer(30);
-
-    } catch (err) {
+    } catch {
       toast.error("Failed to resend");
     } finally {
       setResendLoading(false);
@@ -64,72 +53,61 @@ export default function VerifyOTP() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-rose-50 px-4">
-
-      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
-
-        {/* BACK TO LOGIN */}
+    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-6">
+      <section className="w-full max-w-md rounded-lg border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
         <button
+          type="button"
           onClick={() => navigate("/auth")}
-          className="text-emerald-600 text-sm mb-4 hover:underline"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-emerald-700"
         >
-          ← Back to Login
+          <ArrowLeft className="h-4 w-4" />
+          Back to login
         </button>
 
-        <h2 className="text-2xl font-bold text-emerald-600 text-center mb-2">
-          Verify OTP 🔑
-        </h2>
-
-        <p className="text-gray-500 text-center mb-6">
-          Enter OTP sent to your email
-        </p>
+        <div className="mb-6">
+          <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700">
+            <KeyRound className="h-5 w-5" />
+          </span>
+          <h1 className="text-2xl font-bold text-slate-950">Verify OTP</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Enter the 6-digit code sent to your email.
+          </p>
+        </div>
 
         <input
           type="text"
+          inputMode="numeric"
           maxLength={6}
-          placeholder="Enter 6-digit OTP"
+          placeholder="000000"
+          value={otp}
           onChange={(e) => setOtp(e.target.value)}
-          className="w-full text-center tracking-widest px-4 py-3 border rounded-xl mb-4 focus:ring-2 focus:ring-emerald-400 outline-none"
+          className="min-h-12 w-full rounded-lg border border-slate-200 bg-white px-4 text-center text-lg tracking-[0.35em] text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
         />
 
-        {/* VERIFY BUTTON */}
         <button
+          type="button"
           onClick={verify}
           disabled={loading}
-          className="w-full bg-emerald-500 text-white py-3 rounded-xl font-semibold hover:bg-emerald-600 disabled:opacity-50"
+          className="mt-4 min-h-12 w-full rounded-lg bg-emerald-600 px-5 font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
         >
           {loading ? "Verifying..." : "Verify OTP"}
         </button>
 
-        {/* RESEND */}
-        <div className="text-center mt-4">
+        <div className="mt-5 text-center">
           {timer > 0 ? (
-            <p className="text-gray-500 text-sm">
-              Resend OTP in {timer}s
-            </p>
+            <p className="text-sm text-slate-500">Resend OTP in {timer}s</p>
           ) : (
             <button
+              type="button"
               onClick={resendOTP}
               disabled={resendLoading}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-800 disabled:opacity-50"
             >
               {resendLoading ? "Sending..." : "Resend OTP"}
             </button>
           )}
         </div>
-
-        {/* LOGIN OPTION */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Remember your password?{" "}
-          <span
-            onClick={() => navigate("/auth")}
-            className="text-emerald-600 font-medium cursor-pointer hover:underline"
-          >
-            Login
-          </span>
-        </p>
-
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

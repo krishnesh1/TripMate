@@ -7,7 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Run ONLY once on app load
+  // Run only once on app load.
   useEffect(() => {
     checkAuth();
   }, []);
@@ -39,6 +39,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const googleLogin = async (credential) => {
+    try {
+      await authAPI.googleLogin(credential);
+      const userData = await authAPI.getMe();
+      setUser(userData);
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  };
+
 const signup = async (name, email, password) => {
   try {
     await authAPI.signup(name, email, password);
@@ -57,12 +68,12 @@ const signup = async (name, email, password) => {
     try {
       await authAPI.logout();
     } finally {
-      setUser(null); // ✅ immediately unauth
+      setUser(null);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, googleLogin, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

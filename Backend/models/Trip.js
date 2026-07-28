@@ -1,14 +1,9 @@
 const mongoose = require('mongoose');
 
-const memberSchema = new mongoose.Schema({
+const tripSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  },
-  tripId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Trip',
     required: true
   },
   name: {
@@ -18,4 +13,6 @@ const memberSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Member', memberSchema);
+tripSchema.index({ userId: 1, name: 1 }, { unique: true });
+
+module.exports = mongoose.model('Trip', tripSchema);

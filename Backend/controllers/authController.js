@@ -26,12 +26,21 @@ exports.signup = async (req, res) => {
       await transporter.sendMail({
         from: `"TripMate" <${process.env.EMAIL_USER}>`,
         to: email,
+<<<<<<< HEAD
         subject: "Welcome to TripMate ",
         html: `
           <div style="font-family: Arial; padding:20px;">
             <h2 style="color:#10b981;">Welcome ${name} </h2>
             <p>Your account has been created successfully.</p>
             <p>We’re happy to have you onboard "TripMate"</p>
+=======
+        subject: "Welcome to TripMate 🎉",
+        html: `
+          <div style="font-family: Arial; padding:20px;">
+            <h2 style="color:#10b981;">Welcome ${name} 🚀</h2>
+            <p>Your account has been created successfully.</p>
+            <p>We’re happy to have you onboard ❤️</p>
+>>>>>>> 704390a (Add trip management and Google authentication)
             <hr/>
             <p style="font-size:12px; color:gray;">
               © ${new Date().getFullYear()} TripMate
@@ -76,15 +85,76 @@ exports.login = async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
+<<<<<<< HEAD
       secure: true,
       sameSite: "None",
+=======
+      secure: false,
+      sameSite: "lax",
+>>>>>>> 704390a (Add trip management and Google authentication)
       maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       id: user._id,
       email: user.email,
+<<<<<<< HEAD
     });
+=======
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const googleRes = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`,
+    );
+    const googleUser = await googleRes.json();
+
+    if (!googleRes.ok || !googleUser.email) {
+      return res.status(401).json({ message: "Invalid Google login" });
+    }
+
+    if (process.env.GOOGLE_CLIENT_ID && googleUser.aud !== process.env.GOOGLE_CLIENT_ID) {
+      return res.status(401).json({ message: "Google client mismatch" });
+    }
+
+    let user = await User.findOne({ email: googleUser.email });
+
+    if (!user) {
+      user = await User.create({
+        name: googleUser.name || googleUser.email.split("@")[0],
+        email: googleUser.email,
+        password: crypto.randomBytes(24).toString("hex"),
+        avatar: googleUser.picture || "",
+      });
+    }
+
+    const token = user.generateToken();
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+    });
+>>>>>>> 704390a (Add trip management and Google authentication)
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
