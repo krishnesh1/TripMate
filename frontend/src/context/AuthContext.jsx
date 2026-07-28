@@ -69,6 +69,9 @@ const signup = async (name, email, password) => {
     try {
       await authAPI.logout();
     } finally {
+      if (window.google?.accounts?.id) {
+        window.google.accounts.id.disableAutoSelect();
+      }
       setUser(null);
     }
   };

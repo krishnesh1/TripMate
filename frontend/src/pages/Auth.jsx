@@ -98,8 +98,10 @@ const Auth = () => {
     window.google.accounts.id.initialize({
       client_id: googleClientId,
       callback: (response) => handleGoogleLogin(response.credential),
+      auto_select: false,
     });
 
+    window.google.accounts.id.disableAutoSelect();
     googleButtonRef.current.innerHTML = "";
     window.google.accounts.id.renderButton(googleButtonRef.current, {
       theme: "outline",

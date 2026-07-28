@@ -2,17 +2,23 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const User = require("../models/User");
 
-const isProduction = process.env.NODE_ENV === "production";
+const getCookieOptions = (req) => {
+  const origin = req.get("origin") || "";
+  const isLocalhost =
+    origin.includes("localhost") ||
+    origin.includes("127.0.0.1") ||
+    origin.includes("::1");
 
-const authCookieOptions = {
-  httpOnly: true,
-  secure: isProduction,
-  sameSite: isProduction ? "none" : "lax",
-  maxAge: 30 * 24 * 60 * 60 * 1000,
+  return {
+    httpOnly: true,
+    secure: !isLocalhost,
+    sameSite: isLocalhost ? "lax" : "none",
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  };
 };
 
-const setAuthCookie = (res, token) => {
-  res.cookie("token", token, authCookieOptions);
+const setAuthCookie = (req, res, token) => {
+  res.cookie("token", token, getCookieOptions(req));
 };
 
 const transporter = nodemailer.createTransport({
@@ -59,7 +65,7 @@ exports.signup = async (req, res) => {
       console.log("Email failed:", err.message);
     }
 
-    setAuthCookie(res, user.generateToken());
+    setAuthCookie(req, res, user.generateToken());
 
     res.status(201).json({
       id: user._id,
@@ -81,7 +87,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    setAuthCookie(res, user.generateToken());
+    setAuthCookie(req, res, user.generateToken());
 
     res.status(200).json({
       id: user._id,
@@ -126,7 +132,7 @@ exports.googleLogin = async (req, res) => {
       });
     }
 
-    setAuthCookie(res, user.generateToken());
+    setAuthCookie(req, res, user.generateToken());
 
     res.status(200).json({
       id: user._id,
@@ -141,10 +147,9 @@ exports.googleLogin = async (req, res) => {
 
 exports.logout = (req, res) => {
   res.cookie("token", "", {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    ...getCookieOptions(req),
     expires: new Date(0),
+    maxAge: 0,
   });
   res.json({ message: "Logged out successfully" });
 };
